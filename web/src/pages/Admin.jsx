@@ -114,8 +114,105 @@ export default function Admin() {
     load();
   };
 
+  const viewRecord = (title, record) => {
+    window.alert(`${title}\n\n${JSON.stringify(record, null, 2)}`);
+  };
+
+  const createUser = async () => {
+    const name = window.prompt('User name');
+    if (!name) return;
+    const phone = window.prompt('Phone number');
+    if (!phone) return;
+    const password = window.prompt('Temporary password (min 6 chars)', '123456');
+    if (!password) return;
+    const role = window.prompt('Role: admin or member', 'member') || 'member';
+    await api.post('/admin/users', { name, phone, password, role });
+    load();
+  };
+
+  const editUser = async (user) => {
+    const name = window.prompt('User name', user.name);
+    if (!name) return;
+    const phone = window.prompt('Phone number', user.phone);
+    if (!phone) return;
+    await updateUser(user, { name, phone });
+  };
+
+  const deleteUser = async (user) => {
+    if (!window.confirm(`Disable user ${user.name}?`)) return;
+    await api.delete(`/admin/users/${user._id}`);
+    load();
+  };
+
   const updateAlert = async (alert, status) => {
     await api.patch(`/admin/alerts/${alert._id}`, { status });
+    load();
+  };
+
+  const editAlert = async (alert) => {
+    const emergencyMessage = window.prompt('Emergency message', alert.emergencyMessage || alert.note || '');
+    if (emergencyMessage == null) return;
+    await api.patch(`/admin/alerts/${alert._id}`, { emergencyMessage });
+    load();
+  };
+
+  const deleteAlert = async (alert) => {
+    if (!window.confirm('Delete this alert record?')) return;
+    await api.delete(`/admin/alerts/${alert._id}`);
+    load();
+  };
+
+  const createCircle = async () => {
+    const name = window.prompt('Circle name');
+    if (!name) return;
+    const owner = window.prompt('Owner user ID');
+    if (!owner) return;
+    const type = window.prompt('Type: family or couple', 'family') || 'family';
+    await api.post('/admin/circles', { name, owner, type });
+    load();
+  };
+
+  const editCircle = async (circle) => {
+    const name = window.prompt('Circle name', circle.name);
+    if (!name) return;
+    const type = window.prompt('Type: family or couple', circle.type) || circle.type;
+    await api.patch(`/admin/circles/${circle._id}`, { name, type });
+    load();
+  };
+
+  const deleteCircle = async (circle) => {
+    if (!window.confirm(`Delete circle ${circle.name}? Alerts and locations in it will also be deleted.`)) return;
+    await api.delete(`/admin/circles/${circle._id}`);
+    load();
+  };
+
+  const deleteLocation = async (location) => {
+    if (!window.confirm('Delete this GPS location record?')) return;
+    await api.delete(`/admin/locations/${location._id}`);
+    load();
+  };
+
+  const editContact = async (contact) => {
+    const user = data.users.find((u) => u._id === contact.user?._id);
+    if (!user) return;
+    const contacts = [...(user.emergencyContacts || [])];
+    const current = contacts[contact.index] || contact;
+    const name = window.prompt('Contact name', current.name || '');
+    if (!name) return;
+    const phone = window.prompt('Contact phone', current.phone || '');
+    if (!phone) return;
+    const relation = window.prompt('Relation', current.relation || '') || '';
+    contacts[contact.index] = { name, phone, relation };
+    await api.patch(`/admin/users/${user._id}`, { emergencyContacts: contacts });
+    load();
+  };
+
+  const deleteContact = async (contact) => {
+    const user = data.users.find((u) => u._id === contact.user?._id);
+    if (!user || !window.confirm(`Delete contact ${contact.name}?`)) return;
+    const contacts = [...(user.emergencyContacts || [])];
+    contacts.splice(contact.index, 1);
+    await api.patch(`/admin/users/${user._id}`, { emergencyContacts: contacts });
     load();
   };
 
@@ -180,7 +277,10 @@ export default function Admin() {
 
       {active === 'users' && (
         <div className="card admin-table-card">
-          <div className="between" style={{ marginBottom: 14 }}><h3>User Management</h3><button className="btn" onClick={() => exportCsv('users')}>CSV</button></div>
+          <div className="between" style={{ marginBottom: 14 }}>
+            <h3>User Management</h3>
+            <div className="row"><button className="btn primary" onClick={createUser}>Add User</button><button className="btn" onClick={() => exportCsv('users')}>CSV</button></div>
+          </div>
           <div className="admin-table">
             <div className="admin-table-head"><span>Name</span><span>Phone</span><span>Role</span><span>Status</span><span>Actions</span></div>
             {data.users.map((u) => (
@@ -190,8 +290,11 @@ export default function Admin() {
                 <span className={'pill ' + (u.role === 'admin' ? 'pending' : 'safe')}>{u.role}</span>
                 <span className={'pill ' + (u.isActive ? 'safe' : 'danger')}>{u.isActive ? 'active' : 'disabled'}</span>
                 <span className="row">
+                  <button className="btn ghost" onClick={() => viewRecord('User details', u)}>View</button>
+                  <button className="btn ghost" onClick={() => editUser(u)}>Edit</button>
                   <button className="btn ghost" onClick={() => updateUser(u, { role: u.role === 'admin' ? 'member' : 'admin' })}>{u.role === 'admin' ? 'Make member' : 'Make admin'}</button>
                   <button className="btn ghost" onClick={() => updateUser(u, { isActive: !u.isActive })}>{u.isActive ? 'Disable' : 'Enable'}</button>
+                  <button className="btn danger" onClick={() => deleteUser(u)}>Delete</button>
                 </span>
               </div>
             ))}
@@ -211,8 +314,11 @@ export default function Admin() {
                 <span className={'pill ' + (a.status === 'active' ? 'danger' : a.status === 'resolved' ? 'safe' : 'pending')}>{a.status}</span>
                 <span className="dim">{a.emergencyMessage || a.note || 'SOS alert'}</span>
                 <span className="row">
+                  <button className="btn ghost" onClick={() => viewRecord('Alert details', a)}>View</button>
+                  <button className="btn ghost" onClick={() => editAlert(a)}>Edit</button>
                   <button className="btn ghost" onClick={() => updateAlert(a, 'resolved')}>Resolve</button>
                   <button className="btn ghost" onClick={() => updateAlert(a, 'cancelled')}>Cancel</button>
+                  <button className="btn danger" onClick={() => deleteAlert(a)}>Delete</button>
                 </span>
               </div>
             ))}
@@ -222,7 +328,10 @@ export default function Admin() {
 
       {active === 'circles' && (
         <div className="card admin-table-card">
-          <h3 style={{ marginBottom: 14 }}>Family and Couples Management</h3>
+          <div className="between" style={{ marginBottom: 14 }}>
+            <h3>Family and Couples Management</h3>
+            <button className="btn primary" onClick={createCircle}>Add Circle</button>
+          </div>
           <div className="admin-card-grid">
             {data.circles.map((c) => (
               <div className="admin-mini-card" key={c._id}>
@@ -231,6 +340,11 @@ export default function Admin() {
                 <p className="dim">Owner: {c.owner?.name || 'Unknown'}</p>
                 <p className="mono dim">Invite: {c.inviteCode}</p>
                 <b>{c.members?.length || 0} members</b>
+                <div className="row" style={{ marginTop: 12, flexWrap: 'wrap' }}>
+                  <button className="btn ghost" onClick={() => viewRecord('Circle details', c)}>View</button>
+                  <button className="btn ghost" onClick={() => editCircle(c)}>Edit</button>
+                  <button className="btn danger" onClick={() => deleteCircle(c)}>Delete</button>
+                </div>
               </div>
             ))}
           </div>
@@ -241,14 +355,17 @@ export default function Admin() {
         <div className="card admin-table-card">
           <div className="between" style={{ marginBottom: 14 }}><h3>GPS Tracking Monitoring</h3><button className="btn" onClick={() => exportCsv('locations')}>CSV</button></div>
           <div className="admin-table gps">
-            <div className="admin-table-head"><span>User</span><span>Circle</span><span>Coordinates</span><span>Movement</span><span>Updated</span></div>
+            <div className="admin-table-head"><span>User</span><span>Circle</span><span>Coordinates</span><span>Movement</span><span>Actions</span></div>
             {recentLocations.map((l) => (
               <div className="admin-table-row" key={l._id}>
                 <span><b>{l.user?.name || 'Unknown'}</b><small>{l.user?.phone}</small></span>
                 <span>{l.circle?.name || '-'}</span>
                 <span className="mono">{l.geo?.coordinates?.[1]?.toFixed?.(5)}, {l.geo?.coordinates?.[0]?.toFixed?.(5)}</span>
                 <span>{l.speed || 0} km/h · ±{l.accuracy || 0}m</span>
-                <span className="mono dim">{new Date(l.recordedAt).toLocaleString()}</span>
+                <span className="row">
+                  <button className="btn ghost" onClick={() => viewRecord('Location details', l)}>View</button>
+                  <button className="btn danger" onClick={() => deleteLocation(l)}>Delete</button>
+                </span>
               </div>
             ))}
           </div>
@@ -259,10 +376,15 @@ export default function Admin() {
         <div className="card admin-table-card">
           <h3 style={{ marginBottom: 14 }}>Emergency Contact Management</h3>
           <div className="admin-table contacts">
-            <div className="admin-table-head"><span>User</span><span>Contact</span><span>Relation</span><span>Phone</span></div>
+            <div className="admin-table-head"><span>User</span><span>Contact</span><span>Relation</span><span>Actions</span></div>
             {data.contacts.map((c, i) => (
               <div className="admin-table-row" key={`${c.user?._id}-${c.phone}-${i}`}>
-                <span>{c.user?.name}</span><span><b>{c.name}</b></span><span>{c.relation || '-'}</span><span>{c.phone}</span>
+                <span>{c.user?.name}</span><span><b>{c.name}</b><small>{c.phone}</small></span><span>{c.relation || '-'}</span>
+                <span className="row">
+                  <button className="btn ghost" onClick={() => viewRecord('Contact details', c)}>View</button>
+                  <button className="btn ghost" onClick={() => editContact(c)}>Edit</button>
+                  <button className="btn danger" onClick={() => deleteContact(c)}>Delete</button>
+                </span>
               </div>
             ))}
           </div>

@@ -52,7 +52,7 @@ class _CirclesScreenState extends State<CirclesScreen> {
             const SizedBox(height: 12),
             TextField(controller: _name, decoration: InputDecoration(labelText: t('circleName'), border: const OutlineInputBorder())),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(value: _type,
+            DropdownButtonFormField<String>(initialValue: _type,
               decoration: InputDecoration(labelText: t('type'), border: const OutlineInputBorder()),
               items: [
                 DropdownMenuItem(value: 'family', child: Text(t('family'))),

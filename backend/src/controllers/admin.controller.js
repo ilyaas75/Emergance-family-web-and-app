@@ -62,18 +62,81 @@ exports.users = asyncHandler(async (req, res) => {
   return ok(req, res, { msgKey: 'generic.fetched', data: users.map((u) => u.toSafeJSON()) });
 });
 
+exports.getUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) throw new ApiError(404, 'generic.not_found');
+  return ok(req, res, { msgKey: 'generic.fetched', data: user.toSafeJSON() });
+});
+
+exports.createUser = asyncHandler(async (req, res) => {
+  const { name, phone, email, password, role, language } = req.body;
+  if (await User.findOne({ phone })) throw new ApiError(409, 'auth.user_exists');
+  const user = new User({ name, phone, email, role: role === 'admin' ? 'admin' : 'member', language });
+  await user.setPassword(password);
+  await user.save();
+  return ok(req, res, { status: 201, msgKey: 'auth.registered', data: user.toSafeJSON() });
+});
+
 exports.updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.userId);
   if (!user) throw new ApiError(404, 'generic.not_found');
+  ['name', 'email', 'phone', 'language', 'bloodType', 'allergies', 'conditions', 'medications', 'emergencyContacts'].forEach((key) => {
+    if (key in req.body) user[key] = req.body[key];
+  });
   if ('role' in req.body) user.role = req.body.role === 'admin' ? 'admin' : 'member';
   if ('isActive' in req.body) user.isActive = !!req.body.isActive;
   await user.save();
   return ok(req, res, { msgKey: 'generic.updated', data: user.toSafeJSON() });
 });
 
+exports.deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) throw new ApiError(404, 'generic.not_found');
+  user.isActive = false;
+  await user.save();
+  return ok(req, res, { msgKey: 'generic.deleted', data: user.toSafeJSON() });
+});
+
 exports.circles = asyncHandler(async (req, res) => {
   const circles = await Circle.find().sort('-createdAt').populate('owner', 'name phone').populate('members.user', 'name phone role');
   return ok(req, res, { msgKey: 'generic.fetched', data: circles });
+});
+
+exports.getCircle = asyncHandler(async (req, res) => {
+  const circle = await Circle.findById(req.params.circleId).populate('owner', 'name phone').populate('members.user', 'name phone role');
+  if (!circle) throw new ApiError(404, 'generic.not_found');
+  return ok(req, res, { msgKey: 'generic.fetched', data: circle });
+});
+
+exports.createCircle = asyncHandler(async (req, res) => {
+  const owner = await User.findById(req.body.owner);
+  if (!owner) throw new ApiError(404, 'generic.not_found');
+  const circle = await Circle.create({
+    name: req.body.name,
+    type: req.body.type || 'family',
+    owner: owner._id,
+    members: [{ user: owner._id, role: 'admin' }],
+  });
+  return ok(req, res, { status: 201, msgKey: 'circle.created', data: circle });
+});
+
+exports.updateCircle = asyncHandler(async (req, res) => {
+  const circle = await Circle.findById(req.params.circleId);
+  if (!circle) throw new ApiError(404, 'generic.not_found');
+  ['name', 'type', 'settings'].forEach((key) => { if (key in req.body) circle[key] = req.body[key]; });
+  await circle.save();
+  return ok(req, res, { msgKey: 'generic.updated', data: circle });
+});
+
+exports.deleteCircle = asyncHandler(async (req, res) => {
+  const circle = await Circle.findById(req.params.circleId);
+  if (!circle) throw new ApiError(404, 'generic.not_found');
+  await Promise.all([
+    Alert.deleteMany({ circle: circle._id }),
+    Location.deleteMany({ circle: circle._id }),
+    circle.deleteOne(),
+  ]);
+  return ok(req, res, { msgKey: 'generic.deleted' });
 });
 
 exports.alerts = asyncHandler(async (req, res) => {
@@ -85,9 +148,16 @@ exports.alerts = asyncHandler(async (req, res) => {
   return ok(req, res, { msgKey: 'generic.fetched', data: alerts });
 });
 
+exports.getAlert = asyncHandler(async (req, res) => {
+  const alert = await Alert.findById(req.params.alertId).populate('triggeredBy', 'name phone').populate('circle', 'name type');
+  if (!alert) throw new ApiError(404, 'generic.not_found');
+  return ok(req, res, { msgKey: 'generic.fetched', data: alert });
+});
+
 exports.updateAlert = asyncHandler(async (req, res) => {
   const alert = await Alert.findById(req.params.alertId);
   if (!alert) throw new ApiError(404, 'generic.not_found');
+  ['note', 'emergencyMessage'].forEach((key) => { if (key in req.body) alert[key] = req.body[key]; });
   if (['active', 'resolved', 'cancelled'].includes(req.body.status)) {
     alert.status = req.body.status;
     if (alert.status !== 'active') alert.resolvedAt = new Date();
@@ -96,15 +166,30 @@ exports.updateAlert = asyncHandler(async (req, res) => {
   return ok(req, res, { msgKey: 'generic.updated', data: alert });
 });
 
+exports.deleteAlert = asyncHandler(async (req, res) => {
+  const alert = await Alert.findById(req.params.alertId);
+  if (!alert) throw new ApiError(404, 'generic.not_found');
+  await alert.deleteOne();
+  return ok(req, res, { msgKey: 'generic.deleted' });
+});
+
 exports.locations = asyncHandler(async (req, res) => {
   const locations = await Location.find().sort('-recordedAt').limit(500).populate('user', 'name phone').populate('circle', 'name type');
   return ok(req, res, { msgKey: 'generic.fetched', data: locations });
 });
 
+exports.deleteLocation = asyncHandler(async (req, res) => {
+  const location = await Location.findById(req.params.locationId);
+  if (!location) throw new ApiError(404, 'generic.not_found');
+  await location.deleteOne();
+  return ok(req, res, { msgKey: 'generic.deleted' });
+});
+
 exports.contacts = asyncHandler(async (req, res) => {
   const users = await User.find({ 'emergencyContacts.0': { $exists: true } }).select('name phone emergencyContacts');
-  const contacts = users.flatMap((user) => user.emergencyContacts.map((contact) => ({
+  const contacts = users.flatMap((user) => user.emergencyContacts.map((contact, index) => ({
     user: { _id: user._id, name: user.name, phone: user.phone },
+    index,
     name: contact.name,
     phone: contact.phone,
     relation: contact.relation,

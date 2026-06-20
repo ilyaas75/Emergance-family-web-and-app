@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
-import '../config/env.dart';
 
 class AlertsTab extends StatefulWidget {
   const AlertsTab({super.key});
@@ -12,7 +11,7 @@ class AlertsTab extends StatefulWidget {
 
 class _AlertsTabState extends State<AlertsTab> {
   final _api = ApiService.instance.dio;
-  List _alerts = []; bool _loading = true;
+  List _alerts = []; String? _circleId; bool _loading = true;
 
   @override
   void initState() { super.initState(); _load(); }
@@ -21,11 +20,24 @@ class _AlertsTabState extends State<AlertsTab> {
       final r = await _api.get('/circles/mine');
       final circles = r.data['data'];
       if (circles.isNotEmpty) {
-        final a = await _api.get('/circles/${circles.first['_id']}/alerts');
+        _circleId = circles.first['_id'];
+        final a = await _api.get('/circles/$_circleId/alerts');
         _alerts = a.data['data'];
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _respond(String alertId, String status) async {
+    if (_circleId == null) return;
+    await _api.post('/circles/$_circleId/alerts/$alertId/respond', data: {'status': status});
+    await _load();
+  }
+
+  Future<void> _resolve(String alertId) async {
+    if (_circleId == null) return;
+    await _api.post('/circles/$_circleId/alerts/$alertId/resolve', data: {});
+    await _load();
   }
 
   @override
@@ -38,6 +50,7 @@ class _AlertsTabState extends State<AlertsTab> {
         final a = _alerts[i];
         final active = a['status'] == 'active';
         final media = (a['media'] as List?) ?? [];
+        final message = a['emergencyMessage'] ?? a['note'];
         return Card(child: Padding(padding: const EdgeInsets.all(14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -46,9 +59,19 @@ class _AlertsTabState extends State<AlertsTab> {
               Expanded(child: Text('${a['type'] == 'sos' ? 'SOS' : 'Check-in'} · ${a['triggeredBy']?['name'] ?? '—'}',
                 style: const TextStyle(fontWeight: FontWeight.w700))),
             ]),
+            if (message != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(message.toString())),
+            if (a['locationUrl'] != null) Padding(padding: const EdgeInsets.only(top: 8),
+              child: Chip(avatar: const Icon(Icons.place, size: 16), label: Text(a['locationUrl']))),
             if (media.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8),
               child: Wrap(spacing: 8, children: media.map<Widget>((m) =>
                 Chip(label: Text(m['kind'] == 'video' ? '🎥 video' : '🎙 audio'))).toList())),
+            if (active) Padding(padding: const EdgeInsets.only(top: 10),
+              child: Wrap(spacing: 8, runSpacing: 8, children: [
+                OutlinedButton(onPressed: () => _respond(a['_id'], 'responding'), child: const Text('Responding')),
+                OutlinedButton(onPressed: () => _respond(a['_id'], 'arrived'), child: const Text('Arrived')),
+                FilledButton(onPressed: () => _respond(a['_id'], 'safe'), child: Text(t('safe'))),
+                FilledButton.tonal(onPressed: () => _resolve(a['_id']), child: const Text('Resolve')),
+              ])),
             Padding(padding: const EdgeInsets.only(top: 6),
               child: Text(a['startedAt'] ?? '', style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor))),
           ])));

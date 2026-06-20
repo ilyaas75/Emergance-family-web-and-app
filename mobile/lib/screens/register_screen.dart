@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/locale_provider.dart';
@@ -20,14 +21,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     final loc = context.read<LocaleProvider>();
+    final name = _name.text.trim();
+    final phone = _phone.text.trim();
+    final password = _pass.text;
+    if (name.isEmpty || phone.isEmpty || password.isEmpty) {
+      setState(() => _err = 'Please fill in all fields');
+      return;
+    }
+    if (password.length < 6) {
+      setState(() => _err = 'Password must be at least 6 characters');
+      return;
+    }
     setState(() { _busy = true; _err = null; });
     try {
       await context.read<AuthProvider>().register({
-        'name': _name.text.trim(), 'phone': _phone.text.trim(),
-        'password': _pass.text, 'language': loc.lang,
+        'name': name, 'phone': phone,
+        'password': password, 'language': loc.lang,
       });
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
-    } catch (e) { setState(() => _err = 'Error'); }
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final message = data is Map ? data['message']?.toString() : null;
+      final fallback = e.type == DioExceptionType.connectionError
+          ? 'Cannot connect to server. Make sure backend is running.'
+          : 'Registration failed';
+      setState(() => _err = message ?? fallback);
+    } catch (_) { setState(() => _err = 'Registration failed'); }
     finally { if (mounted) setState(() => _busy = false); }
   }
 
@@ -53,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               TextField(controller: _pass, obscureText: true, decoration: InputDecoration(labelText: t('password'), border: const OutlineInputBorder())),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: loc.lang,
+                initialValue: loc.lang,
                 decoration: InputDecoration(labelText: t('language'), border: const OutlineInputBorder()),
                 items: AppStrings.langs.map((l) => DropdownMenuItem(value: l['code'], child: Text(l['label']!))).toList(),
                 onChanged: (v) { if (v != null) loc.setLang(v); }),

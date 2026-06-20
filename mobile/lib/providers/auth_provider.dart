@@ -35,6 +35,10 @@ class AuthProvider extends ChangeNotifier {
     await SocketService.connect();
     notifyListeners();
   }
+  void setUser(AppUser next) {
+    user = next;
+    notifyListeners();
+  }
   Future<void> logout() async {
     try { final rt = await TokenStore.refresh; await _api.post('/auth/logout', data: {'refreshToken': rt}); } catch (_) {}
     await TokenStore.clear(); SocketService.disconnect(); user = null; notifyListeners();

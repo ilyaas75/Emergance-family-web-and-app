@@ -7,8 +7,6 @@ class LocationService {
     var perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
     if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) return null;
-    return Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
+    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
 }

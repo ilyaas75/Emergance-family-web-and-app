@@ -17,7 +17,7 @@ class AppTheme {
         primary: _safe, secondary: _azure, error: _danger,
         surface: surface, onPrimary: Color(0xFF06121C),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 0,
@@ -37,7 +37,7 @@ class AppTheme {
         primary: Color(0xFF11A87E), secondary: Color(0xFF2C7BE5), error: Color(0xFFE23744),
         surface: surface, onPrimary: Colors.white,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 1,
