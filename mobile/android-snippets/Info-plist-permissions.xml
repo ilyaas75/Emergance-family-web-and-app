@@ -1,0 +1,12 @@
+<!-- Add these keys inside ios/Runner/Info.plist <dict> -->
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Badbaado uses your location to share it with your family circle during emergencies.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>Badbaado shares your live location with your circle so they can reach you in an emergency.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Badbaado records audio as emergency evidence.</string>
+<key>NSCameraUsageDescription</key>
+<string>Badbaado records video as emergency evidence.</string>
+<!-- Dev only: allow HTTP to a local backend -->
+<key>NSAppTransportSecurity</key>
+<dict><key>NSAllowsArbitraryLoads</key><true/></dict>

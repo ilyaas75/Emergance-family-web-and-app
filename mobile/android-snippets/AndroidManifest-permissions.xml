@@ -1,0 +1,11 @@
+<!-- Add these INSIDE <manifest> (above <application>) in
+     android/app/src/main/AndroidManifest.xml -->
+<uses-permission android:name="android.permission.INTERNET"/>
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+<uses-permission android:name="android.permission.RECORD_AUDIO"/>
+<uses-permission android:name="android.permission.CAMERA"/>
+
+<!-- For network access to a local HTTP backend during development, set on <application>:
+     android:usesCleartextTraffic="true" -->

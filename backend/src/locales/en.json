@@ -1,0 +1,9 @@
+{
+  "generic": { "ok": "Success", "created": "Created successfully", "updated": "Updated successfully", "deleted": "Deleted successfully", "fetched": "Fetched successfully", "not_found": "Not found", "server_error": "A server error occurred", "validation_error": "Validation failed", "rate_limited": "Too many requests — please slow down" },
+  "auth": { "registered": "Account created", "login_success": "Logged in successfully", "invalid_credentials": "Invalid phone or password", "token_refreshed": "Token refreshed", "logged_out": "Logged out", "unauthorized": "Please sign in", "forbidden": "You are not allowed to do this", "user_exists": "This phone is already registered", "invalid_token": "Invalid or expired token", "password_changed": "Password changed", "otp_sent": "Verification code sent", "otp_invalid": "Verification code is invalid or expired" },
+  "circle": { "created": "Circle created", "joined": "You joined the circle", "left": "You left the circle", "not_member": "You are not a member of this circle", "not_admin": "You are not an admin of this circle", "invalid_invite": "Invalid invite code", "already_member": "You are already a member" },
+  "location": { "updated": "Location updated" },
+  "alert": { "created": "Alert sent", "resolved": "Alert resolved", "cancelled": "Alert cancelled", "responded": "Your response was sent", "media_uploaded": "Recording uploaded", "not_active": "Alert is not active" },
+  "checkin": { "created": "Check-in request sent", "responded": "Your response was sent" },
+  "upload": { "invalid_type": "File type not allowed (audio/video only)", "too_large": "File is too large" }
+}

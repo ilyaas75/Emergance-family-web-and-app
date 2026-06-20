@@ -1,0 +1,9 @@
+{
+  "generic": { "ok": "Waa la guulaystay", "created": "Si guul leh ayaa loo abuuray", "updated": "Si guul leh ayaa loo cusboonaysiiyay", "deleted": "Si guul leh ayaa loo tirtiray", "fetched": "Xogta waa la helay", "not_found": "Lama helin", "server_error": "Khalad server ah ayaa dhacay", "validation_error": "Xogta la geliyay waa qaldan tahay", "rate_limited": "Codsiyo aad u badan — fadlan iska sug" },
+  "auth": { "registered": "Akoon waa la sameeyay", "login_success": "Si guul leh ayaad u gashay", "invalid_credentials": "Lambarka ama furaha waa qaldan yahay", "token_refreshed": "Token-ka waa la cusboonaysiiyay", "logged_out": "Waad ka baxday", "unauthorized": "Fadlan gal akoonkaaga", "forbidden": "Ogolaansho ma lihid ficilkan", "user_exists": "Lambarkan horey ayaa loo isticmaalay", "invalid_token": "Token sax ah maaha ama wuu dhacay", "password_changed": "Furaha waa la beddelay", "otp_sent": "Koodhka xaqiijinta waa la diray", "otp_invalid": "Koodhka xaqiijinta waa qaldan yahay ama wuu dhacay" },
+  "circle": { "created": "Xeradda waa la abuuray", "joined": "Waxaad ku biirtay xeradda", "left": "Waad ka baxday xeradda", "not_member": "Xubin kama tihid xeraddan", "not_admin": "Maamule kama tihid xeraddan", "invalid_invite": "Koodhka casuumaadda waa qaldan yahay", "already_member": "Horey ayaad ugu xubin tahay" },
+  "location": { "updated": "Goobta waa la cusboonaysiiyay" },
+  "alert": { "created": "Digniinta waa la diray", "resolved": "Digniinta waa la xaliyay", "cancelled": "Digniinta waa la joojiyay", "responded": "Jawaabtaada waa la diray", "media_uploaded": "Duubista waa la kaydiyay", "not_active": "Digniintu firfircoon maaha" },
+  "checkin": { "created": "Codsiga 'Ma nabad baa?' waa la diray", "responded": "Jawaabtaada waa la diray" },
+  "upload": { "invalid_type": "Nooca faylka lama ogola (cod/video kaliya)", "too_large": "Faylku aad buu u weyn yahay" }
+}

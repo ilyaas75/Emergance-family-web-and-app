@@ -1,0 +1,9 @@
+{
+  "generic": { "ok": "تم بنجاح", "created": "تم الإنشاء بنجاح", "updated": "تم التحديث بنجاح", "deleted": "تم الحذف بنجاح", "fetched": "تم جلب البيانات", "not_found": "غير موجود", "server_error": "حدث خطأ في الخادم", "validation_error": "فشل التحقق من البيانات", "rate_limited": "طلبات كثيرة جدًا — يرجى الإبطاء" },
+  "auth": { "registered": "تم إنشاء الحساب", "login_success": "تم تسجيل الدخول بنجاح", "invalid_credentials": "رقم الهاتف أو كلمة المرور غير صحيحة", "token_refreshed": "تم تحديث الرمز", "logged_out": "تم تسجيل الخروج", "unauthorized": "يرجى تسجيل الدخول", "forbidden": "غير مسموح لك بهذا الإجراء", "user_exists": "رقم الهاتف مسجّل بالفعل", "invalid_token": "رمز غير صالح أو منتهي", "password_changed": "تم تغيير كلمة المرور", "otp_sent": "تم إرسال رمز التحقق", "otp_invalid": "رمز التحقق غير صالح أو منتهي" },
+  "circle": { "created": "تم إنشاء المجموعة", "joined": "انضممت إلى المجموعة", "left": "غادرت المجموعة", "not_member": "لست عضوًا في هذه المجموعة", "not_admin": "لست مشرفًا على هذه المجموعة", "invalid_invite": "رمز دعوة غير صالح", "already_member": "أنت عضو بالفعل" },
+  "location": { "updated": "تم تحديث الموقع" },
+  "alert": { "created": "تم إرسال التنبيه", "resolved": "تم حل التنبيه", "cancelled": "تم إلغاء التنبيه", "responded": "تم إرسال ردك", "media_uploaded": "تم رفع التسجيل", "not_active": "التنبيه غير نشط" },
+  "checkin": { "created": "تم إرسال طلب الاطمئنان", "responded": "تم إرسال ردك" },
+  "upload": { "invalid_type": "نوع الملف غير مسموح (صوت/فيديو فقط)", "too_large": "الملف كبير جدًا" }
+}
